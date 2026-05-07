@@ -32,6 +32,10 @@ const EventRoute = require("./routes/AddEventRoutes/EventRoutes")
 const BlogRoutes = require("./routes/AddBlogsRoutes/BlogRoutes")
 const WishlistRoutes = require("./routes/addwishlistRouters/WishlistRoutes")
 const FWishlistRoutes = require("./routes/FAddWishlistRoutes/FWishlistRoutes")
+const BranchesRoutes = require("./routes/AddbranchRoutes/branchRoutes")
+const MaterialRoutes = require("./routes/AddmaterialRoutes/materialRoutes");
+const GoldRateRoutes = require("./routes/AddgoldRateRoutes/goldRateRoutes");
+
 
 // const files = fs.readFileSync('./62ACF8182B9E5DCCC1E610CE4B2C525F.txt') 
 const cheerio   = require('cheerio');
@@ -56,7 +60,7 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 
 mongoose.connect(
   "mongodb+srv://sadamdon1234:1YktFZRZ1cX0PRj4@cluster0.nhacelr.mongodb.net/myliya-db?retryWrites=true&w=majority&appName=Cluster0");
@@ -90,6 +94,9 @@ app.use("/api/faq", FAQRoutes);
 app.use("/api/review",RatingRoute);
 app.use("/api/event",EventRoute); 
 app.use("/api/blog",BlogRoutes);
+app.use("/api/branches", BranchesRoutes);
+app.use("/api/goldrate", GoldRateRoutes);
+app.use("/api/material", MaterialRoutes);
 
 
 // Endpoint for uploading and processing Excel file

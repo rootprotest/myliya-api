@@ -1,21 +1,39 @@
-// routes/EmployeeRoutes.js
-const express = require('express');
+// routes/EmployeeRoutes/employeeRoutes.js
+
+const express = require("express");
+
 const router = express.Router();
-const EmployeeController = require('../../controllers/AddEmployeeController/EmployeeController');
 
-// Create a new employee
-router.post('/createEmployee', EmployeeController.createEmployee);
+const EmployeeController = require("../../controllers/AddEmployeeController/EmployeeController");
 
-// Get details of a specific employee by ID
-router.get('/getEmployee/:id', EmployeeController.getEmployee);
+// CREATE
+router.post(
+  "/createEmployee",
+  EmployeeController.createEmployee
+);
 
-// Update details of an employee
-router.put('/updateEmployee/:id', EmployeeController.updateEmployee);
+// GET ALL
+router.get(
+  "/getEmployees",
+  EmployeeController.getEmployees
+);
 
-// Delete an employee
-router.delete('/deleteEmployee/:id', EmployeeController.deleteEmployee);
+// GET SINGLE
+router.get(
+  "/getEmployee/:id",
+  EmployeeController.getEmployeeById
+);
 
-router.get('/getAllEmployees', EmployeeController.getAllEmployees);
+// UPDATE
+router.put(
+  "/updateEmployee/:id",
+  EmployeeController.updateEmployee
+);
 
+// DELETE
+router.delete(
+  "/deleteEmployee/:id",
+  EmployeeController.deleteEmployee
+);
 
 module.exports = router;

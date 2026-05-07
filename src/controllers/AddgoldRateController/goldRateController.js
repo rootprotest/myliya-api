@@ -1,16 +1,16 @@
-// controllers/EmployeeController/employeeController.js
+// controllers/GoldRateController/goldRateController.js
 
-const Employee = require("../../models/AddEmployee/Employee");
+const GoldRate = require("../../models/AddGold/GoldRate");
 
 // CREATE
-exports.createEmployee = async (req, res) => {
+exports.createGoldRate = async (req, res) => {
   try {
-    const employee = await Employee.create(req.body);
+    const goldRate = await GoldRate.create(req.body);
 
     res.status(200).json({
       success: true,
-      message: "Employee created successfully",
-      employee,
+      message: "Gold rate created successfully",
+      goldRate,
     });
   } catch (error) {
     console.error(error);
@@ -23,13 +23,13 @@ exports.createEmployee = async (req, res) => {
 };
 
 // GET ALL
-exports.getEmployees = async (req, res) => {
+exports.getGoldRates = async (req, res) => {
   try {
-    const employees = await Employee.find().sort({ createdAt: -1 });
+    const goldRates = await GoldRate.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      employees,
+      goldRates,
     });
   } catch (error) {
     console.error(error);
@@ -42,20 +42,20 @@ exports.getEmployees = async (req, res) => {
 };
 
 // GET SINGLE
-exports.getEmployeeById = async (req, res) => {
+exports.getGoldRateById = async (req, res) => {
   try {
-    const employee = await Employee.findById(req.params.id);
+    const goldRate = await GoldRate.findById(req.params.id);
 
-    if (!employee) {
+    if (!goldRate) {
       return res.status(404).json({
         success: false,
-        message: "Employee not found",
+        message: "Gold rate not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      employee,
+      goldRate,
     });
   } catch (error) {
     console.error(error);
@@ -68,9 +68,9 @@ exports.getEmployeeById = async (req, res) => {
 };
 
 // UPDATE
-exports.updateEmployee = async (req, res) => {
+exports.updateGoldRate = async (req, res) => {
   try {
-    const updatedEmployee = await Employee.findByIdAndUpdate(
+    const updatedGoldRate = await GoldRate.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
@@ -78,8 +78,8 @@ exports.updateEmployee = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Employee updated successfully",
-      updatedEmployee,
+      message: "Gold rate updated successfully",
+      updatedGoldRate,
     });
   } catch (error) {
     console.error(error);
@@ -92,13 +92,13 @@ exports.updateEmployee = async (req, res) => {
 };
 
 // DELETE
-exports.deleteEmployee = async (req, res) => {
+exports.deleteGoldRate = async (req, res) => {
   try {
-    await Employee.findByIdAndDelete(req.params.id);
+    await GoldRate.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
-      message: "Employee deleted successfully",
+      message: "Gold rate deleted successfully",
     });
   } catch (error) {
     console.error(error);

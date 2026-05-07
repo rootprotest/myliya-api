@@ -143,18 +143,11 @@ exports.getAllBanners = async (req, res) => {
 };
 exports.getBannerslist = async (req, res) => {
   try {
-    const { lang } = req.query;
-
+   
 
    
-    console.log(products);
-    // Validate 'lang' parameter
-    if (!lang || !LANGID[lang]) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Invalid 'lang' parameter" });
-    }
-    const banners = await BannerCard.find({ lang: LANGID[lang] });
+   
+    const banners = await BannerCard.find();
     res.status(200).json({ success: true, banners });
   } catch (error) {
     console.error(error);
