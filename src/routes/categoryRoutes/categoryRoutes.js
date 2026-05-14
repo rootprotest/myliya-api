@@ -6,7 +6,7 @@ const { uploadHandler } = require("../../Image/multerSetup")
 const categoryController = require('../../controllers/categoryController/categoryController');
 
 // Create a new category
-router.post('/addcategories',uploadHandler, categoryController.createCategory);
+router.post('/addcategories', categoryController.createCategory);
 
 // Get all categories
 router.get('/categories', categoryController.getAllCategories);

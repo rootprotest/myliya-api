@@ -8,7 +8,7 @@ exports.createCategory = async (req, res) => {
     const { name, description, isActive, createdBy, lang } = req.body;
 
     // Ensure req.fileUrls is properly structured
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
+    const imageUrls = req.fileUrls ? req.fileUrls['imageFile'] : null;
     const categoryImgDesktop = req.fileUrls ? req.fileUrls['ImgDesktop'] : null;
     const categoryImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
 
@@ -17,9 +17,9 @@ exports.createCategory = async (req, res) => {
     const newCategory = await Category.create({
       name,
       description,
-      imageUrl,
-      category_img_desktop: categoryImgDesktop,
-      category_img_mobile: categoryImgMobile,
+      imageUrl: imageUrls ? imageUrls[0] : null,
+      category_img_desktop: categoryImgDesktop ? categoryImgDesktop[0] : null,
+      category_img_mobile: categoryImgMobile ? categoryImgMobile[0] : null,
       isActive,
       createdBy,
       lang,
@@ -80,9 +80,10 @@ exports.updateCategoryById = async (req, res) => {
     }
 
     // Ensure req.fileUrls is properly structured
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
+    const imageUrls = req.fileUrls ? req.fileUrls['imageFile'] : null;
     const categoryImgDesktop = req.fileUrls ? req.fileUrls['ImgDesktop'] : null;
     const categoryImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
+    console.log('Image URLs for update:', req.fileUrls);
 
     // Update the category fields
     existingCategory.name = name;
@@ -90,14 +91,14 @@ exports.updateCategoryById = async (req, res) => {
     existingCategory.description = description;
 
     // Update image URLs only if new files are uploaded
-    if (imageUrl) {
-      existingCategory.imageUrl = imageUrl;
+    if (imageUrls) {
+      existingCategory.imageUrl = imageUrls[0];
     }
     if (categoryImgDesktop) {
-      existingCategory.category_img_desktop = categoryImgDesktop;
+      existingCategory.category_img_desktop = categoryImgDesktop[0];
     }
     if (categoryImgMobile) {
-      existingCategory.category_img_mobile = categoryImgMobile;
+      existingCategory.category_img_mobile = categoryImgMobile[0];
     }
 
     existingCategory.createdBy = createdBy;

@@ -2,14 +2,14 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, },
   description: String,
   // Add new fields below
   imageUrl: String,
   isActive: { type: Boolean, default: true },
-  createdBy: { type: String, required: true },
+  createdBy: { type: String },
   createdAt: { type: Date, default: Date.now },
-  lang: { type: String, required: true },
+  lang: { type: String,default: 1 },
   category_img_desktop:String,
   category_img_mobile:String
 

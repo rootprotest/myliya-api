@@ -48,7 +48,7 @@ const uploadHandler = (req, res, next) => {
         console.log(`Processing file: ${file.originalname}`);
         console.log(`File size: ${file.size} bytes`);
 
-        const folderName = 'winterbear/';
+        const folderName = 'muliya-dev/';
         const newFileName = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const destination = `${folderName}${newFileName}`;
 
