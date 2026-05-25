@@ -35,6 +35,11 @@ const FWishlistRoutes = require("./routes/FAddWishlistRoutes/FWishlistRoutes")
 const BranchesRoutes = require("./routes/AddbranchRoutes/branchRoutes")
 const MaterialRoutes = require("./routes/AddmaterialRoutes/materialRoutes");
 const GoldRateRoutes = require("./routes/AddgoldRateRoutes/goldRateRoutes");
+const CareerRoutes   = require("./routes/CareerRoutes/careerRoutes");
+const GoldPlanRoutes      = require("./routes/GoldPlanRoutes/goldPlanRoutes");
+const MakingChargeRoutes  = require("./routes/MakingChargeRoutes/makingChargeRoutes");
+const cron                = require("node-cron");
+const GoldRate            = require("./models/AddGold/GoldRate");
 
 
 // const files = fs.readFileSync('./62ACF8182B9E5DCCC1E610CE4B2C525F.txt') 
@@ -97,6 +102,9 @@ app.use("/api/blog",BlogRoutes);
 app.use("/api/branches", BranchesRoutes);
 app.use("/api/goldrate", GoldRateRoutes);
 app.use("/api/material", MaterialRoutes);
+app.use("/api/career",    CareerRoutes);
+app.use("/api/goldplan",       GoldPlanRoutes);
+app.use("/api/makingcharge",   MakingChargeRoutes);
 
 
 // Endpoint for uploading and processing Excel file
@@ -328,6 +336,55 @@ app.post('/submit-return', uploadHandler, (req, res) => {
     }
   });
 });
+
+/* ── Gold Rate Midnight Scheduler ──────────────────────────────────────────
+   Runs every day at 12:00 AM IST (Asia/Kolkata).
+   If no rate has been set for today, it automatically carries forward the
+   previous day's rates so the website header always shows a value.
+   Admin can override by adding/editing today's rate in the admin panel.
+─────────────────────────────────────────────────────────────────────────── */
+cron.schedule(
+  "0 0 * * *",                     // every day at midnight
+  async () => {
+    const today = new Date().toISOString().split("T")[0]; // "YYYY-MM-DD"
+    console.log(`[GoldRate Scheduler] Midnight tick — checking rates for ${today}`);
+
+    try {
+      // Check if a rate for today already exists
+      const existing = await GoldRate.findOne({ date: today });
+
+      if (existing) {
+        console.log(`[GoldRate Scheduler] Rate already set for ${today} — skipping.`);
+        return;
+      }
+
+      // Carry forward the most recent active rate
+      const latest = await GoldRate.findOne({ status: true }).sort({ createdAt: -1 });
+
+      if (latest) {
+        await GoldRate.create({
+          title:      `Daily Rate - ${today}`,
+          gold24KT:   latest.gold24KT,
+          gold22KT:   latest.gold22KT,
+          gold18KT:   latest.gold18KT || 0,
+          silverRate: latest.silverRate || 0,
+          date:       today,
+          status:     true,
+          createdBy:  "System (auto)",
+        });
+        console.log(
+          `[GoldRate Scheduler] Auto-created rate for ${today}: ` +
+          `24K=₹${latest.gold24KT}, 22K=₹${latest.gold22KT}, 18K=₹${latest.gold18KT || 0}`
+        );
+      } else {
+        console.log(`[GoldRate Scheduler] No previous rate found — please set rates manually for ${today}.`);
+      }
+    } catch (err) {
+      console.error("[GoldRate Scheduler] Error:", err.message);
+    }
+  },
+  { timezone: "Asia/Kolkata" }      // IST midnight
+);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

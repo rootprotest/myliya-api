@@ -16,13 +16,12 @@ const upload = multer({
   storage: multerMemoryStorage,
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype == 'image/png' || file.mimetype == 'image/jpg' || file.mimetype == 'image/jpeg') {
+    const allowed = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp'];
+    if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(null, false);
-      const err = new Error('Only .png, .jpg, and .jpeg formats are allowed!');
-      err.name = 'ExtensionError';
-      return cb(err);
+      // Call cb exactly ONCE — either reject silently or pass an error, never both
+      cb(new Error('Only .png, .jpg, .jpeg, and .webp formats are allowed!'));
     }
   },
 }).fields([

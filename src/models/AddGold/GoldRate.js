@@ -20,6 +20,11 @@ const GoldRateSchema = new mongoose.Schema(
       required: true,
     },
 
+    gold18KT: {
+      type: Number,
+      default: 0,
+    },
+
     silverRate: {
       type: Number,
       default: 0,

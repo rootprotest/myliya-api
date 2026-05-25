@@ -158,93 +158,142 @@ const sendEmail = async (email, otp) => {
 };
 
 module.exports = {
-  login: async (req, res) => {
-    const { email, password, mobilenumber,google_signin,fcm_token } = req.body;
+ login: async (req, res) => {
+  const {
+    email,
+    password,
+    mobilenumber,
+    google_signin,
+    fcm_token,
+  } = req.body;
 
-    try {
-      // Find user by username
-      const errors = validationResult(req);
-      if (mobilenumber) {
-        if (!errors.isEmpty()) {
-          return res
-            .status(400)
-            .json({ success: false, errors: errors.array() });
-        }
-      }
+  try {
+    const errors = validationResult(req);
 
-      let user;
-      if (google_signin) {
-        user = await User.findOne(
-          mobilenumber ? { mobilenumber } : { email }
-        );
-        res
-        .status(200)
-        .json({
-          success: true,
-          userId: user._id,
-          UserType: user.UserType,
-        });
-      } else {
-        user = await User.findOne(
-          mobilenumber ? { mobilenumber } : { email }
-        );
-  
-        // Check if user exists
-        if (!user) {
-          return res
-            .status(401)
-            .json({ success: false, message: "Invalid credentials" });
-        }
-        console.log(!user.verified  , user.UserType === "3");
-        // Check if user exists
-        if (user.verified && user.UserType === "3") {
-          return res
-          .status(200)
-          .json({
-            success: true,
-            userId: user._id,
-            UserType: user.UserType,
-          });
-        }
+    if (mobilenumber && !errors.isEmpty()) {
+      console.error("Validation Error:", errors.array());
 
-        if(user.UserType === "1" && fcm_token){
-          user.fcm_token = fcm_token;
-          // Save the updated Product
-          const updateduser = await user.save();
-        }
-  
-        // Check password
-        if (!mobilenumber) {
-          const isPasswordValid = await bcrypt.compare(password, user.password);
-          if (!isPasswordValid) {
-            return res
-              .status(401)
-              .json({ success: false, message: "Invalid credentials" });
-          }
-        }
-  
-        // Generate JWT token
-        const token = jwt.sign(
-          { email: user.email, userId: user._id, UserType: user.UserType },
-          "your-secret-key",
-          { expiresIn: "1h" }
-        );
-  
-        res
-          .status(200)
-          .json({
-            success: true,
-            userId: user._id,
-            UserType: user.UserType,
-          });
-      }
-      
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, error: "Server error" });
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: errors.array(),
+      });
     }
-  },
-  
+
+    const query = mobilenumber ? { mobilenumber } : { email: email?.toLowerCase() };
+
+    const user = await User.findOne(query);
+
+    if (!user) {
+      console.error("Login Failed: User not found", {
+        email,
+        mobilenumber,
+        google_signin,
+      });
+
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Google Sign In Login
+    if (google_signin) {
+      return res.status(200).json({
+        success: true,
+        userId: user._id,
+        UserType: user.UserType,
+        user: {
+          _id: user._id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          email: user.email,
+          mobilenumber: user.mobilenumber,
+          UserType: user.UserType,
+          profile_img: user.profile_img,
+        },
+      });
+    }
+
+    // If verified UserType 3, allow login without password
+    if (user.verified && user.UserType === "3") {
+      return res.status(200).json({
+        success: true,
+        userId: user._id,
+        UserType: user.UserType,
+      });
+    }
+
+    // Verify password for both email and phone login
+    // (skip only for google_signin which was already handled above)
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: "Password is required",
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      console.error("Login Failed: Invalid password", { email, mobilenumber, userId: user._id });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Optional: save FCM token
+    if (fcm_token) {
+      user.fcm_token = fcm_token;
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      {
+        email: user.email,
+        userId: user._id,
+        UserType: user.UserType,
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      token,
+      userId: user._id,
+      UserType: user.UserType,
+      user: {
+        _id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        mobilenumber: user.mobilenumber,
+        UserType: user.UserType,
+        profile_img: user.profile_img,
+      },
+    });
+} catch (error) {
+  const safeBody = { ...req.body };
+
+  delete safeBody.password;
+  delete safeBody.confirmPassword;
+  delete safeBody.token;
+  delete safeBody.fcm_token;
+
+  console.error("Register API Error:", {
+    message: error.message,
+    stack: error.stack,
+    body: safeBody,
+  });
+
+  return res.status(500).json({
+    success: false,
+    error: RESPONSE_MESSAGES.SERVER_ERROR,
+  });
+}
+},
 
   register: async (req, res, ) => {
     try {
@@ -271,25 +320,21 @@ module.exports = {
   
       const emailTaken = await isFieldTaken(
         "email",
-        email,
+        email?.toLowerCase(),
         RESPONSE_MESSAGES.EMAIL_TAKEN
       );
       if (emailTaken) return res.status(400).json(emailTaken);
-  
+
       const mobileTaken = await isFieldTaken(
         "mobilenumber",
         mobilenumber,
         RESPONSE_MESSAGES.MOBILE_TAKEN
       );
       if (mobileTaken) return res.status(400).json(mobileTaken);
-  
-      const usernameTaken = await isFieldTaken(
-        "firstname",
-        firstname,
-        RESPONSE_MESSAGES.USERNAME_TAKEN
-      );
-      if (usernameTaken) return res.status(400).json(usernameTaken);
-  
+
+      // NOTE: firstname is NOT unique — common names must be allowed.
+      // Uniqueness is enforced only on email and mobilenumber above.
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const otp = generateVerificationCode();
       const otpExpiry = Date.now() + 3600000; // OTP expires in 1 hour
@@ -299,7 +344,7 @@ module.exports = {
         lastname,
         UserType,
         mobilenumber,
-        email,
+        email: email?.toLowerCase(),
         password: hashedPassword,
         username: firstname,
         lang,
@@ -317,7 +362,8 @@ module.exports = {
         };
         return res.status(200).json(response);
       }
-  
+
+      let newAdmin = null;
       if (UserType === "2") {
         newAdmin = await Admin.create({
           storename,
@@ -330,17 +376,32 @@ module.exports = {
       }
   
       await sendEmail(email, otp);
-  
+
+      const token = jwt.sign(
+        { email: newUser.email, userId: newUser._id, UserType: newUser.UserType },
+        "your-secret-key",
+        { expiresIn: "7d" }
+      );
+
       const response = {
         success: true,
-        user: newUser,
+        token,
+        userId: newUser._id,
+        UserType: newUser.UserType,
+        user: {
+          _id: newUser._id,
+          firstname: newUser.firstname,
+          lastname: newUser.lastname,
+          email: newUser.email,
+          mobilenumber: newUser.mobilenumber,
+          UserType: newUser.UserType,
+        },
       };
-  
+
       if (newAdmin) {
         response.admin = newAdmin;
       }
-     
-      
+
       res.status(200).json(response);
     } catch (error) {
       console.error(error);

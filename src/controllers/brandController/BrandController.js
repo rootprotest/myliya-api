@@ -7,22 +7,21 @@ exports.createBrand = async (req, res) => {
     const { name, description, isActive, createdBy, lang, category_id } = req.body;
     console.log(req.files, req.file);
 
-    // Ensure req.fileUrls is properly structured
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
-    const categoryImgDesktop = req.fileUrls ? req.fileUrls['ImgDesktop'] : null;
-    const categoryImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
+    // fileUrls values are arrays — take first element
+    const imageUrl = req.fileUrls?.['imageFile']?.[0] ?? null;
+    const categoryImgDesktop = req.fileUrls?.['ImgDesktop']?.[0] ?? null;
+    const categoryImgMobile = req.fileUrls?.['ImgMobile']?.[0] ?? null;
 
-    console.log('Image URLs:', req.fileUrls);
     const newBrand = await Brand.create({
       name,
       description,
-      imageUrl: imageUrl,
+      imageUrl,
       isActive,
       createdBy,
       category_id,
       lang,
       banner_img: categoryImgDesktop,
-      banner_mob_img: categoryImgMobile
+      banner_mob_img: categoryImgMobile,
     });
 
     res.status(200).json({ success: true, brand: newBrand });
@@ -69,10 +68,10 @@ exports.updateBrandById = async (req, res) => {
   try {
     const brandId = req.params.id;
     const { name, description, createdBy, lang, category_id } = req.body;
-    // Ensure req.fileUrls is properly structured
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
-    const BrandImgDesktop = req.fileUrls ? req.fileUrls['ImgDesktop'] : null;
-    const BrandImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
+    // fileUrls values are arrays — take first element
+    const imageUrl = req.fileUrls?.['imageFile']?.[0] ?? null;
+    const BrandImgDesktop = req.fileUrls?.['ImgDesktop']?.[0] ?? null;
+    const BrandImgMobile = req.fileUrls?.['ImgMobile']?.[0] ?? null;
     // Check if the brand exists
     const existingBrand = await Brand.findById(brandId);
 

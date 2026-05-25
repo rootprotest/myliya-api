@@ -12,6 +12,12 @@ router.post(
   GoldRateController.createGoldRate
 );
 
+// GET LATEST (for website header — most recent active rate)
+router.get(
+  "/getLatestGoldRate",
+  GoldRateController.getLatestGoldRate
+);
+
 // GET ALL
 router.get(
   "/getGoldRates",

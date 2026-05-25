@@ -8,12 +8,18 @@ exports.createBranch = async (req, res) => {
       address,
       phone,
       googleMapsUrl,
-      image,
       description,
       isActive,
       createdBy,
       lang,
     } = req.body;
+
+    // Prefer the GCS-uploaded URL; fall back to any URL sent in the body
+    const image =
+      req.fileUrls?.imageFile?.[0] ||
+      req.fileUrls?.images?.[0] ||
+      req.body.image ||
+      '';
 
     const newBranch = await Branch.create({
       name,
@@ -102,16 +108,22 @@ exports.updateBranchById = async (req, res) => {
       });
     }
 
+    // If a new image file was uploaded use its URL; otherwise keep the existing image
+    const newImageUrl =
+      req.fileUrls?.imageFile?.[0] ||
+      req.fileUrls?.images?.[0] ||
+      null;
+
     // update fields
-    existingBranch.name = req.body.name;
-    existingBranch.address = req.body.address;
-    existingBranch.phone = req.body.phone;
-    existingBranch.googleMapsUrl = req.body.googleMapsUrl;
-    existingBranch.image = req.body.image;
-    existingBranch.description = req.body.description;
-    existingBranch.isActive = req.body.isActive;
-    existingBranch.createdBy = req.body.createdBy;
-    existingBranch.lang = req.body.lang;
+    existingBranch.name        = req.body.name        ?? existingBranch.name;
+    existingBranch.address     = req.body.address     ?? existingBranch.address;
+    existingBranch.phone       = req.body.phone       ?? existingBranch.phone;
+    existingBranch.googleMapsUrl = req.body.googleMapsUrl ?? existingBranch.googleMapsUrl;
+    existingBranch.image       = newImageUrl || req.body.image || existingBranch.image;
+    existingBranch.description = req.body.description ?? existingBranch.description;
+    existingBranch.isActive    = req.body.isActive    ?? existingBranch.isActive;
+    existingBranch.createdBy   = req.body.createdBy   ?? existingBranch.createdBy;
+    existingBranch.lang        = req.body.lang        ?? existingBranch.lang;
 
     const updatedBranch = await existingBranch.save();
 

@@ -24,17 +24,17 @@ exports.createBannerItem = async (req, res) => {
         .json({ success: false, error: "Missing required fields" });
     }
 
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
-    const BannerImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
+    const imageUrl = req.fileUrls?.['imageFile']?.[0] ?? null;
+    const BannerImgMobile = req.fileUrls?.['ImgMobile']?.[0] ?? null;
 
     const newBanner = await BannerCard.create({
       name,
       description,
-      imageUrl: imageUrl,
+      imageUrl,
       createdBy,
       lang,
       link_brand,
-      banner_img_mob:BannerImgMobile
+      banner_img_mob: BannerImgMobile,
     });
 
     res.status(200).json({ success: true, banner: newBanner });
@@ -51,7 +51,7 @@ exports.updateBannerItem = async (req, res) => {
     const { name, description, isActive, createdBy, lang, link_brand } = req.body;
 
     // Validate required fields
-    if (!name || !description || !isActive || !createdBy) {
+    if (!name || !description || !createdBy) {
       return res.status(400).json({ success: false, error: "Missing required fields" });
     }
 
@@ -62,9 +62,9 @@ exports.updateBannerItem = async (req, res) => {
       return res.status(404).json({ success: false, message: "Banner item not found" });
     }
 
-    // Extract file URLs if present
-    const imageUrl = req.fileUrls ? req.fileUrls['imageFile'] : null;
-    const bannerImgMobile = req.fileUrls ? req.fileUrls['ImgMobile'] : null;
+    // Extract file URLs if present (fileUrls values are arrays — take first element)
+    const imageUrl = req.fileUrls?.['imageFile']?.[0] ?? null;
+    const bannerImgMobile = req.fileUrls?.['ImgMobile']?.[0] ?? null;
 
     // Update the banner item fields
     existingBannerItem.name = name;

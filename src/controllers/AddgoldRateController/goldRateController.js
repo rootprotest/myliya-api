@@ -22,6 +22,22 @@ exports.createGoldRate = async (req, res) => {
   }
 };
 
+// GET LATEST (most recent active rate — used by the website header)
+exports.getLatestGoldRate = async (req, res) => {
+  try {
+    const goldRate = await GoldRate.findOne({ status: true }).sort({ createdAt: -1 });
+
+    if (!goldRate) {
+      return res.status(404).json({ success: false, message: "No active gold rate found" });
+    }
+
+    res.status(200).json({ success: true, goldRate });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
 // GET ALL
 exports.getGoldRates = async (req, res) => {
   try {
