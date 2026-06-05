@@ -1,4 +1,5 @@
 // app.js
+require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const express = require("express");
 const ExcelJS = require('exceljs');
 // const functions = require("firebase-functions");
@@ -67,8 +68,12 @@ if (!fs.existsSync(uploadDir)) {
 
 const port = process.env.PORT || 5000;
 
-mongoose.connect(
-  "mongodb+srv://sadamdon1234:1YktFZRZ1cX0PRj4@cluster0.nhacelr.mongodb.net/myliya-db?retryWrites=true&w=majority&appName=Cluster0");
+const MONGO_URI = process.env.MONGO_ATLAS || process.env.MONGODB_URI;
+if (!MONGO_URI) { console.error("❌ MONGO_ATLAS not set in .env"); process.exit(1); }
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("✅ MongoDB connected:", MONGO_URI.split("@")[1]?.split("/")[0] ?? "connected"))
+  .catch((err) => { console.error("❌ MongoDB connection failed:", err.message); process.exit(1); });
 
 // Additional setup, if any
 
